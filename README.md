@@ -25,12 +25,14 @@ Through human-LLM collaboration, we discovered that with proper temporal tools, 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/jlumbroso/passage-of-time-mcp.git
 cd passage-of-time-mcp
 ```
 
 2. Install dependencies:
+
 ```bash
 pipenv install
 # or with pip:
@@ -38,6 +40,7 @@ pip install fastmcp pytz
 ```
 
 3. Run the server:
+
 ```bash
 pipenv run server
 # or directly:
@@ -45,6 +48,50 @@ pipenv run python passage_of_time_mcp.py
 ```
 
 The server will start on `http://0.0.0.0:8000/sse`.
+
+### Docker Installation
+
+Alternatively, you can run the server using Docker:
+
+1. Clone the repository (if not already done):
+
+```bash
+git clone https://github.com/jlumbroso/passage-of-time-mcp.git
+cd passage-of-time-mcp
+```
+
+2. Build the Docker image:
+
+```bash
+docker build -t passage-of-time-mcp .
+```
+
+3. Run the container:
+
+```bash
+# Run on default port 8002
+docker run --name ptime --restart unless-stopped -d -p 8002:8002 --network n8n_network passage-of-time-mcp
+
+# Or specify a custom port
+docker run --name ptime --restart unless-stopped -d -p 3000:3000 -e PORT=3000 --network n8n_network passage-of-time-mcp
+```
+
+The server will be available at `http://0.0.0.0:8002/sse` (or your specified port).
+
+### Testing the Server
+
+To verify your server is running correctly, you can test the endpoint:
+
+```bash
+# Test with curl
+curl -N -H "Accept: text/event-stream" http://localhost:8002/sse
+
+# Expected response:
+# event: endpoint
+# data: /messages/?session_id=<session-id>
+```
+
+If you see the `event: endpoint` response with a session ID, your server is working properly and ready to accept MCP connections.
 
 ### Connecting to Claude.ai
 
@@ -60,6 +107,7 @@ The server will start on `http://0.0.0.0:8000/sse`.
 ### Core Functions
 
 #### `current_datetime(timezone="America/New_York")`
+
 Returns the current date and time. The foundation of temporal awareness.
 
 ```
@@ -67,6 +115,7 @@ Returns: "2024-01-15 14:30:45 EST"
 ```
 
 #### `time_difference(timestamp1, timestamp2, unit="auto")`
+
 Calculates the duration between two timestamps with human-readable output.
 
 ```python
@@ -80,13 +129,14 @@ Calculates the duration between two timestamps with human-readable output.
 ```
 
 #### `timestamp_context(timestamp)`
+
 Provides human context about a timestamp - is it weekend? Business hours? Dinner time?
 
 ```python
 # Example response:
 {
     "time_of_day": "evening",
-    "day_of_week": "Saturday", 
+    "day_of_week": "Saturday",
     "is_weekend": true,
     "is_business_hours": false,
     "typical_activity": "leisure_time",
@@ -95,6 +145,7 @@ Provides human context about a timestamp - is it weekend? Business hours? Dinner
 ```
 
 #### `time_since(timestamp)`
+
 Calculates how long ago something happened with contextual descriptions.
 
 ```python
@@ -107,6 +158,7 @@ Calculates how long ago something happened with contextual descriptions.
 ```
 
 #### `parse_timestamp(timestamp)`
+
 Converts timestamps between different formats for maximum compatibility.
 
 ```python
@@ -120,6 +172,7 @@ Converts timestamps between different formats for maximum compatibility.
 ```
 
 #### `add_time(timestamp, duration, unit)`
+
 Adds or subtracts time with natural language descriptions.
 
 ```python
@@ -132,6 +185,7 @@ Adds or subtracts time with natural language descriptions.
 ```
 
 #### `format_duration(seconds, style="full")`
+
 Formats durations in various styles for different contexts.
 
 ```python
@@ -143,12 +197,14 @@ Formats durations in various styles for different contexts.
 ## 💡 Example Conversations
 
 ### Basic Time Awareness
+
 ```
 Human: What time is it?
 Claude: [calls current_datetime] It's currently 3:45 PM EST on Monday, January 15, 2024.
 ```
 
 ### Conversation Rhythm Analysis
+
 ```
 Human: Let's have a discussion about AI consciousness.
 Claude: [calls current_datetime at start of each response]
@@ -158,9 +214,10 @@ Claude: Looking at the timestamps, I notice you're taking 30 seconds to 2 minute
 ```
 
 ### Understanding Work Context
+
 ```
 Human: [at 11:45 PM] Can you help me debug this code?
-Claude: [calls current_datetime, then timestamp_context] 
+Claude: [calls current_datetime, then timestamp_context]
 I see it's late night on a weekday. Given that it's approaching midnight, let me help you efficiently so you can get some rest. Here's a focused debugging approach...
 ```
 
@@ -179,15 +236,19 @@ This server embodies several key principles:
 ## 🔧 Configuration
 
 ### Timezone Support
+
 The server defaults to `America/New_York` but supports all standard timezone names:
+
 - `UTC`
-- `US/Pacific` 
+- `US/Pacific`
 - `Europe/London`
 - `Asia/Tokyo`
 - etc.
 
 ### Timestamp Formats
+
 All timestamps must use one of these formats:
+
 - Full: `YYYY-MM-DD HH:MM:SS` (e.g., "2024-01-15 14:30:45")
 - Date only: `YYYY-MM-DD` (e.g., "2024-01-15")
 
@@ -196,13 +257,14 @@ This strict formatting prevents ambiguity and ensures reliable calculations.
 ## 🚧 Known Issues & Future Work
 
 ### Current Limitations
+
 - The SSE transport is deprecated but currently most reliable
 - Server requires public URL for web-based clients
 - No persistent memory of past time calculations
 
 ### Roadmap
+
 - [ ] Migrate to modern `http-stream` transport
-- [ ] Add Docker support for easier deployment
 - [ ] Create browser extension for local development
 - [ ] Add configurable activity patterns per user
 - [ ] Support for calendar integration
@@ -238,9 +300,23 @@ pipenv run test
 pipenv run server
 ```
 
-This will start the server on `http://0.0.0.0:8000/sse` on your local computer. However, for web-based clients to connect to it, you will need to expose it to the internet using a service like [ngrok](https://ngrok.com/). 
+#### Docker Development
 
-Assuming you have ngrok installed, you can run `ngrok http 8000` to expose the server to the internet, and then use the provided URL in your MCP client. By default, ngrok will provide the endpoint to use in the form of `https://<random-subdomain>.ngrok-free.app/` in the Terminal:
+For Docker-based development:
+
+```bash
+# Build the Docker image
+docker build -t passage-of-time-mcp-dev .
+
+# Run with volume mounting for live development
+docker run -p 8002:8002 -v $(pwd):/app passage-of-time-mcp-dev
+
+# Or use docker-compose for easier development (create docker-compose.yml)
+```
+
+This will start the server on `http://0.0.0.0:8002/sse` on your local computer. However, for web-based clients to connect to it, you will need to expose it to the internet using a service like [ngrok](https://ngrok.com/).
+
+Assuming you have ngrok installed, you can run `ngrok http 8002` to expose the server to the internet, and then use the provided URL in your MCP client. By default, ngrok will provide the endpoint to use in the form of `https://<random-subdomain>.ngrok-free.app/` in the Terminal:
 
 ```bash
 ❤️ ngrok? We're hiring https://ngrok.com/careers
@@ -277,7 +353,7 @@ Once this endpoint exists, you can add the MCP server as an integration to LLMs,
 Once you've connected the MCP server to Claude.ai, you should start receiving queries locally:
 
 ```bash
-$ pipenv run server 
+$ pipenv run server
 /Users/jlumbroso/.asdf/installs/python/3.12.4/lib/python3.12/asyncio/events.py:88: DeprecationWarning: The run_sse_async method is deprecated (as of 2.3.2). Use run_http_async for a modern (non-SSE) alternative, or create an SSE app with `fastmcp.server.http.create_sse_app` and run it directly.
   self._context.run(self._callback, *self._args)
 [06/16/25 19:18:04] INFO     Starting MCP server 'Passage of Time' with transport 'sse' on http://0.0.0.0:8000/sse            server.py:1219
@@ -316,4 +392,4 @@ Mozilla Public License 2.0 - because good ideas should spread while staying open
 
 ---
 
-*"We're not just building better LLM tools. We're teaching curious cognitive systems about what it means to be human—one timestamp at a time."*
+_"We're not just building better LLM tools. We're teaching curious cognitive systems about what it means to be human—one timestamp at a time."_

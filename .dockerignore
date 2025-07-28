@@ -1,0 +1,32 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+.venv
+venv/
+.env
+
+# Testing
+.pytest_cache
+.coverage
+tests/
+
+# Documentation
+docs/
+LICENSE
+
+# Development
+.vscode
+.idea
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
